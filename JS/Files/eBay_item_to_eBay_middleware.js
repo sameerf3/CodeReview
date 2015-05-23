@@ -78,7 +78,8 @@ var eBayItemListingMiddleWare = (function() {
 
             F3.Util.Utility.log('AUDIT', 'ebayItem', JSON.stringify(ebayItem));
             switch (callType) {
-                case 'add' : {
+                case 'add':
+                {
                     eBayRespModel = Ebay_Operations.AddItemVerification(ebayItem);
                     itemObject.verifyItemStatus = eBayRespModel.Status;
 
@@ -96,7 +97,8 @@ var eBayItemListingMiddleWare = (function() {
                     }
                     break;
                 }
-                case 'revise' : {
+                case 'revise':
+                {
                     itemObject.verifyItemStatus = true;
                     eBayReviseItemResponse = Ebay_Operations.ReviseItem(ebayItem);
                     itemObject.reviseItemMessage = eBayReviseItemResponse.Status;

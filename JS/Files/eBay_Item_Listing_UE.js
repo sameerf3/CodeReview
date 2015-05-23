@@ -35,7 +35,8 @@ var eBayItemListing = (function() {
                 currency = request.getParameter('custparam_currency'),
                 storeId = request.getParameter('custparam_defaultstore');
             switch (type.toString()) {
-                case 'create' : {
+                case 'create':
+                {
                     nlapiSetFieldValue('custrecord_ns_item', id);
                     nlapiSetFieldValue('custrecord_f3ebayitemimage', image);
                     nlapiSetFieldValue('custrecord_f3ebayitemprice', price);
@@ -47,7 +48,8 @@ var eBayItemListing = (function() {
                     nlapiSetFieldValue('custrecord_f3ebaystore', storeId);
                     break;
                 }
-                case 'edit' : {
+                case 'edit':
+                {
                     /**
                      * Check if the store is same or not
                      * If same store Edit the eBay Listing
