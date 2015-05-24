@@ -16,18 +16,30 @@ var eBayItemListingMiddleWare = (function() {
         main: function(request, response) {
             var result = {};
             switch (request.getMethod()) {
+
+                /*
+                Get Request is not supporterd.
+                 */
                 case 'GET':
                     result.result = false;
                     result.data = {};
                     result.data.err = "Unauthorized";
                     response.write(JSON.stringify(result));
                     break;
+                /*
+                Post request handler.
+                 */
                 case 'POST':
                     result = this.postRequestHandler(request);
                     response.write(JSON.stringify(result));
             }
 
         },
+        /**
+         * This method contains all logic implementation of most reqquest.
+         * @param request
+         * @returns {{}}
+         */
         postRequestHandler: function(request) {
             F3.Util.Utility.log('AUDIT', 'DATA', request.getBody());
             var ebayItem = new EbayItemModel(),
