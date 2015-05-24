@@ -2,9 +2,11 @@
  * Created by sameer on 3/10/15.
  * TODO:
  * -
- * -
+ * Client Script on Matrix Item selection page.
  * -
  */
+
+
 /**
  * matrixItemListing class that has the actual functionality of client script.
  * All business logic will be encapsulated in this class.
@@ -12,6 +14,7 @@
 var matrixItemListing = (function() {
     return {
         /**
+         * This Method only checks the selected child again when coming back from item listing record type.
          * The recordType (internal id) corresponds to the "Applied To" record in your script deployment.
          * @appliedtorecord recordType
          *
@@ -20,12 +23,13 @@ var matrixItemListing = (function() {
          */
         clientPageInit: function(type) {
             'use strict';
-            //to reselect checked boxes.
+            //hack: to reselect checked boxes on coming back to matrix child selection page..
             jQuery('[id^="custpage_select_child"] input:checked').click().click();
-
         },
 
         /**
+         * Runs before navigating to item listing record. This method is responsible of checking if at least
+         * one child is selected.
          * This method checks if any child is selected or whether quantity or price field is empty or not.
          * The recordType (internal id) corresponds to the "Applied To" record in your script deployment.
          * @appliedtorecord recordType
@@ -81,8 +85,10 @@ var matrixItemListing = (function() {
                             F3.Util.Utility.isBlankOrNull(nlapiGetLineItemValue(
                                 type,
                                 eBayItemListingDao.CHILD_SELECTION_ITEMS.quantity, linenum))) {
+                            /* If price and quantity are null, then automatically deselect this child. */
                             nlapiSetLineItemValue(type, eBayItemListingDao.CHILD_SELECTION_ITEMS.select, linenum, 'F');
                         } else {
+                            /* If price and quantity are not null, then automatically select this child. */
                             nlapiSetLineItemValue(type, eBayItemListingDao.CHILD_SELECTION_ITEMS.select, linenum, 'T');
                         }
                         break;
