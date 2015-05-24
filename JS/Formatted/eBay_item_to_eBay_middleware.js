@@ -41,16 +41,71 @@ var eBayItemListingMiddleWare = (function() {
          * @returns {{}}
          */
         postRequestHandler: function(request) {
-            F3.Util.Utility.log('AUDIT', 'DATA', request.getBody());
-            var ebayItem = new EbayItemModel(),
-                nsObj,
-                eBayRespModel,
-                eBayAddItemResponse,
-                itemObject = {},
-                eBayReviseItemResponse,
-                callType,
-                record;
-            nsObj = JSON.parse(request.getBody()).nsObj;
+            try {
+                var ebayItem = new EbayItemModel(),
+                    nsObj,
+                    eBayRespModel,
+                    eBayAddItemResponse,
+                    itemObject = {},
+                    eBayReviseItemResponse,
+                    callType,
+                    record;
+                nsObj = JSON.parse(request.getBody()).nsObj;
+                nsObj = this.makeNetSuiteObject(nsObj);
+
+                /* we only need call type for client use. So deleting it from NS Object JSON. */
+                delete nsObj.callType;
+                /* Passing data to eBay Model, that is responsible to put item on eBay Store. */
+                ebayItem.loadData(nsObj);
+
+                switch (callType) {
+                    /* list new item to eBay. */
+                    case 'add':
+                    {
+                        /* Item add verification call. Login Implemented by Shoaib. */
+                        eBayRespModel = Ebay_Operations.AddItemVerification(ebayItem);
+                        itemObject.verifyItemStatus = eBayRespModel.Status;
+
+                        /* If verification passes, send actual call to be listed on eBay.*/
+                        if (!!eBayRespModel.Status) {
+                            eBayAddItemResponse = Ebay_Operations.AddItem(ebayItem);
+                            itemObject.addItemStatus = eBayAddItemResponse.Status;
+                            if (!!eBayAddItemResponse) {
+                                itemObject.Status = eBayAddItemResponse.Status;
+                                itemObject.itemId = eBayAddItemResponse.ItemID;
+                            } else {
+                                itemObject.addItemMessage = eBayAddItemResponse.Message;
+                            }
+                        } else {
+                            itemObject.verifyItemMessage = eBayRespModel.Message;
+                        }
+                        break;
+                    }
+                    /* Revise/Update Item on eBay. */
+                    case 'revise':
+                    {
+                        itemObject.verifyItemStatus = true;
+                        eBayReviseItemResponse = Ebay_Operations.ReviseItem(ebayItem);
+                        itemObject.reviseItemMessage = eBayReviseItemResponse.Status;
+                        if (!!eBayReviseItemResponse) {
+                            itemObject.Status = eBayReviseItemResponse.Status;
+                        } else {
+                            itemObject.reviseItemMessage = eBayReviseItemResponse.Message;
+                        }
+                        break;
+                    }
+                }
+                return itemObject;
+            } catch (e) {
+                F3.Util.Utility.log('ERROR', 'Error in eBay Item listing.');
+            }
+        },
+        /**
+         * Make JSON to be send to Model.
+         * @param nsObj
+         * @returns {*}
+         */
+        makeNetSuiteObject : function (nsObj) {
             nsObj.CategoryID = nlapiLookupField('customrecord_ebay_itemlistingcategory',
                 nsObj.CategoryID, 'custrecord_ebay');
             nsObj.ConditionID = nlapiLookupField('customrecord_ebayitemlistingcondition',
@@ -80,44 +135,7 @@ var eBayItemListingMiddleWare = (function() {
             callType = nsObj.callType;
             record = nlapiLoadRecord('inventoryitem', nsObj.SKU);
             nsObj.SKU = record.getFieldValue('itemid');
-            delete nsObj.callType;
-            ebayItem.loadData(nsObj);
-
-            F3.Util.Utility.log('AUDIT', 'ebayItem', JSON.stringify(ebayItem));
-            switch (callType) {
-                case 'add':
-                {
-                    eBayRespModel = Ebay_Operations.AddItemVerification(ebayItem);
-                    itemObject.verifyItemStatus = eBayRespModel.Status;
-
-                    if (!!eBayRespModel.Status) {
-                        eBayAddItemResponse = Ebay_Operations.AddItem(ebayItem);
-                        itemObject.addItemStatus = eBayAddItemResponse.Status;
-                        if (!!eBayAddItemResponse) {
-                            itemObject.Status = eBayAddItemResponse.Status;
-                            itemObject.itemId = eBayAddItemResponse.ItemID;
-                        } else {
-                            itemObject.addItemMessage = eBayAddItemResponse.Message;
-                        }
-                    } else {
-                        itemObject.verifyItemMessage = eBayRespModel.Message;
-                    }
-                    break;
-                }
-                case 'revise':
-                {
-                    itemObject.verifyItemStatus = true;
-                    eBayReviseItemResponse = Ebay_Operations.ReviseItem(ebayItem);
-                    itemObject.reviseItemMessage = eBayReviseItemResponse.Status;
-                    if (!!eBayReviseItemResponse) {
-                        itemObject.Status = eBayReviseItemResponse.Status;
-                    } else {
-                        itemObject.reviseItemMessage = eBayReviseItemResponse.Message;
-                    }
-                    break;
-                }
-            }
-            return itemObject;
+            return nsObj;
         }
     };
 })();
