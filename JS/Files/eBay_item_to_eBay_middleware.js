@@ -1,13 +1,8 @@
 /**
  * Created by sameer on 2/19/15.
- * TODO:
- * -
- * Referenced By:
- * -
- * -
- * Dependencies:
- * -
- * -
+ * This Suitelet acts as a middleware.
+ * It is responsible of sending data to model for item to be synced on eBay and for error handling
+ *
  */
 /**
  * eBayItemListingMiddleWare class that has the actual functionality of suitelet.
